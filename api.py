@@ -99,8 +99,7 @@ def delete_entry(user_id, entry_id):
 @app.route('/api/calendar/getById/<entry_id>', methods=['GET'])
 @auth_required
 def get_entry(user_id, entry_id):
-    entry_id = ObjectId(entry_id)
-    entry = calendar_collection.find_one({'_id': entry_id, 'user_id': user_id})
+    entry = calendar_collection.find_one({'_id': ObjectId(entry_id), 'user_id': user_id})
     if entry:
         calendar_response = CalendarResponse(
             _id=str(entry['_id']),
@@ -116,22 +115,26 @@ def get_entry(user_id, entry_id):
 @auth_required
 def edit_entry(user_id, entry_id):
     data = request.json
-    if 'date' in data and 'entry_type' in data:
-        if data['entry_type'] in [entry_type.value for entry_type in EntryType]:
-            entry = CalendarRequest(
-                date=datetime.strptime(data['date'], '%Y-%m-%d'),
-                entry_type=EntryType(data['entry_type']),
-                work_hours=data.get('work_hours'),
-                user_id=user_id
-            )
-            if validate_entry(entry):
-                result = calendar_collection.update_one({'_id': entry_id, 'user_id': user_id},
-                                                        {'$set': entry.to_dict()})
-                if result.modified_count == 1:
-                    return '', 204
-                return 'Wrong data', 400
-            else:
-                return 'Invalid entry data', 400
+    entry = calendar_collection.find_one({'_id': ObjectId(entry_id), 'user_id': user_id})
+    if entry:
+        if 'date' in data and 'entry_type' in data:
+            if data['entry_type'] in [entry_type.value for entry_type in EntryType]:
+                entry = CalendarRequest(
+                    date=datetime.strptime(data['date'], '%Y-%m-%d'),
+                    entry_type=EntryType(data['entry_type']),
+                    work_hours=data.get('work_hours'),
+                    user_id=user_id
+                )
+                if validate_entry(entry):
+                    result = calendar_collection.update_one({'_id': ObjectId(entry_id)},
+                                                            {'$set': entry.to_dict()})
+                    if result.modified_count == 1:
+                        return '', 204
+                    return 'Wrong data', 400
+                else:
+                    return 'Invalid entry data', 400
+    else:
+        return 'No entry found', 400
 
 
 # NON CRUD METHODS
