@@ -78,8 +78,11 @@ def add_entry(user_id):
                 work_hours=data.get('work_hours'),
                 user_id=user_id
             )
-            entry_id = calendar_collection.insert_one(entry.to_dict()).inserted_id
-            return jsonify(str(entry_id)), 201
+            if validate_entry(entry):
+                entry_id = calendar_collection.insert_one(entry.to_dict()).inserted_id
+                return jsonify(str(entry_id)), 201
+            else:
+                return 'Invalid entry data', 400
     return 'Wrong data', 400
 
 
@@ -121,13 +124,26 @@ def edit_entry(user_id, entry_id):
                 work_hours=data.get('work_hours'),
                 user_id=user_id
             )
-            result = calendar_collection.update_one({'_id': entry_id, 'user_id': user_id}, {'$set': entry.to_dict()})
-            if result.modified_count == 1:
-                return '', 204
-    return 'Wrong data', 400
+            if validate_entry(entry):
+                result = calendar_collection.update_one({'_id': entry_id, 'user_id': user_id},
+                                                        {'$set': entry.to_dict()})
+                if result.modified_count == 1:
+                    return '', 204
+                return 'Wrong data', 400
+            else:
+                return 'Invalid entry data', 400
 
 
 # NON CRUD METHODS
+def validate_entry(calendar_entry):
+    if calendar_entry.entry_type == EntryType.WORK:
+        if calendar_entry.work_hours is None:
+            return False
+    elif calendar_entry.work_hours is not None:
+        return False
+    return True
+
+
 def register(user):
     if not user_exists(user.username):
         user_collection.insert_one(user.to_dict())
