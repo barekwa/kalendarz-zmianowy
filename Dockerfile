@@ -1,20 +1,26 @@
-# Użyj obrazu bazowego Python
-FROM python:3.9
-
-# Ustal katalog roboczy
+FROM python:3.9-slim-buster
 WORKDIR /app
+COPY ./requirements.txt /app
+RUN pip install blinker
+RUN pip install bson
+RUN pip install cffi
+RUN pip install click
+RUN pip install colorama
+RUN pip install cryptography
+RUN pip install dnspython
+RUN pip install Flask
+RUN pip install itsdangerous
+RUN pip install Jinja2
+RUN pip install jwt
+RUN pip install MarkupSafe
+RUN pip install pycparser
+RUN pip install PyJWT
+RUN pip install pymongo
+RUN pip install python-dateutil
+RUN pip install six
+RUN pip install Werkzeug
 
-# Skopiuj plik requirements.txt
-COPY requirements.txt .
-
-# Zainstaluj zależności Pythona
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Skopiuj resztę plików aplikacji
 COPY . .
-
-# Port, na którym działa serwer back-endowy (możesz zmienić, jeśli inny port jest używany)
-EXPOSE 8080
-
-# Komenda do uruchomienia serwera
-CMD ["python", "app.py"]
+EXPOSE 5000
+ENV FLASK_APP=api.py
+CMD ["flask", "run", "--host", "0.0.0.0"]
