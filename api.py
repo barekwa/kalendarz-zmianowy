@@ -35,6 +35,7 @@ def user_login():
 
 
 @app.route('/api/register', methods=['POST'])
+#TODO: return message
 def user_register():
     data = request.json
     if 'username' in data and 'password' in data and 'mail' in data:
@@ -120,7 +121,7 @@ def edit_entry(user_id, entry_id):
         if 'date' in data and 'entry_type' in data:
             if data['entry_type'] in [entry_type.value for entry_type in EntryType]:
                 entry = CalendarRequest(
-                    date=datetime.strptime(data['date'], '%Y-%m-%d'),
+                    date=(data['date']),
                     entry_type=EntryType(data['entry_type']),
                     work_hours=data.get('work_hours'),
                     user_id=user_id
