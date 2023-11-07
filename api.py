@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from bson import ObjectId
 from flask import Flask
 from flask import request, jsonify
+from flask_cors import CORS
 from pymongo import MongoClient
 
 from auth.auth import generate_token, auth_required
@@ -10,6 +9,7 @@ from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
 app = Flask(__name__)
+CORS(app)
 
 client = MongoClient('mongodb+srv://ProjectAdmin:Parano55@calendarprojectcluster.usy8q0s.mongodb.net/?retryWrites'
                      '=true&w=majority')
