@@ -1,0 +1,30 @@
+swagger: '2.0'
+info:
+  title: Demo App
+  version: "1"
+paths:
+  /api/v1/list:
+    post:
+      description: testpost
+      operationId: PostNewName
+      consumes:
+        - application/json
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            id : toto
+            required:
+              - first
+              - last
+            properties:
+              first:
+                type: string
+                description: Unique identifier representing a First Name
+              last:
+                type: string
+                description: Unique identifier representing a Last Name
+      responses:
+        200:
+          description: creation OK

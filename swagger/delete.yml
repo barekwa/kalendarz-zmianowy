@@ -1,0 +1,33 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Delete Calendar Entry"
+tags:
+  - name: " Calendar"
+    description: "Operations related to the "
+paths:
+  /api/calendar/delete/{entry_id}:
+    delete:
+      tags:
+        - "Calendar"
+      summary: "Delete a calendar entry for the authenticated user"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "user_id"
+          type: "string"
+          required: true
+          description: "User ID"
+        - in: "path"
+          name: "entry_id"
+          type: "string"
+          required: true
+          description: "ID of the calendar entry"
+      responses:
+        204:
+          description: "Entry deleted successfully"
+        404:
+          description: "Entry not found"

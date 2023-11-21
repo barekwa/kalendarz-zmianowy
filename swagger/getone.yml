@@ -1,0 +1,35 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Get Calendar Entry"
+tags:
+  - name: " Calendar"
+    description: "Operations related to the "
+paths:
+  /api/calendar/getById/{entry_id}:
+    get:
+      tags:
+        - "Calendar"
+      summary: "Get details of a calendar entry for the authenticated user"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "user_id"
+          type: "string"
+          required: true
+          description: "User ID"
+        - in: "path"
+          name: "entry_id"
+          type: "string"
+          required: true
+          description: "ID of the calendar entry"
+      responses:
+        200:
+          description: "Details of the calendar entry"
+          schema:
+            $ref: "#/definitions/CalendarResponse"
+        404:
+          description: "Entry not found"

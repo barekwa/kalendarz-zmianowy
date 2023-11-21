@@ -1,0 +1,30 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Get All Calendar Entries"
+tags:
+  - name: " Calendar"
+    description: "Operations related to the "
+paths:
+  /api/calendar:
+    get:
+      tags:
+        - "Calendar"
+      summary: "Get all calendar entries for the authenticated user"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "path"
+          name: "user_id"
+          type: "string"
+          required: true
+          description: "User ID"
+      responses:
+        200:
+          description: "List of calendar entries"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CalendarResponse"
