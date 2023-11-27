@@ -4,7 +4,7 @@ from flask import request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 
-from auth.auth import generate_token, auth_required
+from auth.auth import generate_token, auth_required, logged_out_tokens
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
@@ -35,7 +35,6 @@ def user_login():
 
 
 @app.route('/api/register', methods=['POST'])
-#TODO: return message
 def user_register():
     data = request.json
     if 'username' in data and 'password' in data and 'mail' in data:
@@ -46,12 +45,19 @@ def user_register():
         )
         if register(entry):
             return 'Registered successfully', 201
+        else:
+            return 'Username taken', 403
     return 'Bad Request', 400
 
 
 @app.route('/api/logout', methods=['POST'])
 def user_logout():
-    return 'Logged out successfully', 200
+    token = request.headers.get('Authorization')
+    if token:
+        logged_out_tokens.add(token)
+        return 'Logged out successfully', 200
+    else:
+        return 'Token is missing', 401
 
 
 @app.route('/api/calendar', methods=['GET'])
