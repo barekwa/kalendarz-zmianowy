@@ -5,7 +5,7 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from flasgger import Swagger, swag_from
 
-from auth.auth import generate_token, auth_required
+from auth.auth import generate_token, auth_required, logged_out_tokens
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
@@ -21,7 +21,6 @@ user_collection = db['UserCollection']
 
 
 @app.route('/api/login', methods=['POST'])
-@swag_from('swagger/login.yml')
 def user_login():
     data = request.json
     if 'username' in data and 'password' in data:
@@ -38,8 +37,6 @@ def user_login():
 
 
 @app.route('/api/register', methods=['POST'])
-@swag_from('swagger/register.yml')
-#TODO: return message
 def user_register():
     data = request.json
     if 'username' in data and 'password' in data and 'mail' in data:
@@ -50,18 +47,23 @@ def user_register():
         )
         if register(entry):
             return 'Registered successfully', 201
+        else:
+            return 'Username taken', 403
     return 'Bad Request', 400
 
 
 @app.route('/api/logout', methods=['POST'])
-@swag_from('swagger/logout.yml')
 def user_logout():
-    return 'Logged out successfully', 200
+    token = request.headers.get('Authorization')
+    if token:
+        logged_out_tokens.add(token)
+        return 'Logged out successfully', 200
+    else:
+        return 'Token is missing', 401
 
 
 @app.route('/api/calendar', methods=['GET'])
 @auth_required
-@swag_from('swagger/getall.yml')
 def get_all_entries(user_id):
     entries_from_db = calendar_collection.find({'user_id': user_id})
     entries = [CalendarResponse(
@@ -75,7 +77,6 @@ def get_all_entries(user_id):
 
 @app.route('/api/calendar/add', methods=['POST'])
 @auth_required
-@swag_from('swagger/add.yml')
 def add_entry(user_id):
     data = request.json
     if 'date' in data and 'entry_type' in data:
@@ -96,7 +97,6 @@ def add_entry(user_id):
 
 @app.route('/api/calendar/delete/<entry_id>', methods=['DELETE'])
 @auth_required
-@swag_from('swagger/delete.yml')
 def delete_entry(user_id, entry_id):
     entry_id = ObjectId(entry_id)
 
@@ -107,7 +107,6 @@ def delete_entry(user_id, entry_id):
 
 @app.route('/api/calendar/getById/<entry_id>', methods=['GET'])
 @auth_required
-@swag_from('swagger/getone.yml')
 def get_entry(user_id, entry_id):
     entry = calendar_collection.find_one({'_id': ObjectId(entry_id), 'user_id': user_id})
     if entry:
@@ -123,7 +122,6 @@ def get_entry(user_id, entry_id):
 
 @app.route('/api/calendar/update/<entry_id>', methods=['PUT'])
 @auth_required
-@swag_from('swagger/update.yml')
 def edit_entry(user_id, entry_id):
     data = request.json
     entry = calendar_collection.find_one({'_id': ObjectId(entry_id), 'user_id': user_id})

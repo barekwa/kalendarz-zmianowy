@@ -3,6 +3,7 @@ from functools import wraps
 from flask import request, jsonify
 
 SECRET_KEY = 'ajjhd897932ejnd9903mndfnkjdfnkjdsuf8972318192ndo2189-00'
+logged_out_tokens = set()
 
 
 def generate_token(user_id):
@@ -28,6 +29,9 @@ def auth_required(f):
         token = request.headers.get('Authorization')
         if not token:
             return jsonify({'message': 'Token is missing'}), 401
+
+        if token in logged_out_tokens:
+            return jsonify({'message': 'Token is no longer valid'}), 401
 
         user_id = verify_token(token)
         if user_id is None:
