@@ -27,7 +27,7 @@ def user_login():
         ---
         summary: Authenticate a user and generate a token
         tags:
-          - Calendar
+          - Authorization
         parameters:
           - name: username
             in: body
@@ -74,7 +74,7 @@ def user_register():
         ---
         summary: Register a new user
         tags:
-          - Calendar
+          - Authorization
         parameters:
           - name: username
             in: body
