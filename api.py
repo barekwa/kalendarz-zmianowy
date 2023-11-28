@@ -5,7 +5,7 @@ from flask import request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 
-from auth.auth import generate_token, auth_required, logged_out_tokens
+from auth.auth import generate_token, auth_required
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
@@ -111,34 +111,6 @@ def user_register():
         else:
             return 'Username taken', 403
     return 'Bad Request', 400
-
-
-@app.route('/api/logout', methods=['POST'])
-def user_logout():
-    """
-        User Logout Endpoint
-        ---
-        summary: Log out the current user
-        tags:
-          - Calendar
-        parameters:
-          - name: Authorization
-            in: header
-            type: string
-            required: true
-            description: The JWT token for authentication.
-        responses:
-          200:
-            description: Logged out successfully.
-          401:
-            description: Token is missing.
-        """
-    token = request.headers.get('Authorization')
-    if token:
-        logged_out_tokens.add(token)
-        return 'Logged out successfully', 200
-    else:
-        return 'Token is missing', 401
 
 
 @app.route('/api/calendar', methods=['GET'])
