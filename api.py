@@ -177,7 +177,7 @@ def add_entry(user_id):
       - name: entry_type
         in: body
         type: string
-        enum: ['WORK', 'PERSONAL', 'VACATION']
+        enum: ['work', 'business_trip', 'vacation', 'sick_leave']
         required: true
         description: >
           The type of the new entry. Should be one of: 'WORK', 'PERSONAL', 'VACATION'.
@@ -320,7 +320,7 @@ def edit_entry(user_id, entry_id):
          - name: entry_type
            in: body
            type: string
-           enum: ['WORK', 'PERSONAL', 'VACATION']
+           enum: ['work', 'business_trip', 'vacation', 'sick_leave']
            required: true
            description: >
              The updated type of the entry. Should be one of: 'WORK', 'PERSONAL', 'VACATION'.
