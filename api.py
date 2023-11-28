@@ -1,9 +1,9 @@
 from bson import ObjectId
+from flasgger import Swagger
 from flask import Flask
 from flask import request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
-from flasgger import Swagger, swag_from
 
 from auth.auth import generate_token, auth_required, logged_out_tokens
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
@@ -22,6 +22,37 @@ user_collection = db['UserCollection']
 
 @app.route('/api/login', methods=['POST'])
 def user_login():
+    """
+        User Login Endpoint
+        ---
+        summary: Authenticate a user and generate a token
+        tags:
+          - Calendar
+        parameters:
+          - name: username
+            in: body
+            type: string
+            required: true
+            description: The username of the user.
+          - name: password
+            in: body
+            type: string
+            required: true
+            description: The password of the user.
+        responses:
+          200:
+            description: Successful login. Returns a JWT token.
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: JWT token for authentication.
+            examples:
+              {'token': 'your_generated_token_here'}
+          401:
+            description: Unauthorized. Invalid credentials.
+        """
     data = request.json
     if 'username' in data and 'password' in data:
         entry = UserLoginRequest(
@@ -38,6 +69,36 @@ def user_login():
 
 @app.route('/api/register', methods=['POST'])
 def user_register():
+    """
+        User Register Endpoint
+        ---
+        summary: Register a new user
+        tags:
+          - Calendar
+        parameters:
+          - name: username
+            in: body
+            type: string
+            required: true
+            description: The username of the new user.
+          - name: mail
+            in: body
+            type: string
+            required: true
+            description: The email address of the new user.
+          - name: password
+            in: body
+            type: string
+            required: true
+            description: The password of the new user.
+        responses:
+          201:
+            description: Registered successfully.
+          400:
+            description: Bad Request. Missing or invalid data.
+          403:
+            description: Username is already taken.
+        """
     data = request.json
     if 'username' in data and 'password' in data and 'mail' in data:
         entry = UserCreateRequest(
@@ -54,6 +115,24 @@ def user_register():
 
 @app.route('/api/logout', methods=['POST'])
 def user_logout():
+    """
+        User Logout Endpoint
+        ---
+        summary: Log out the current user
+        tags:
+          - Calendar
+        parameters:
+          - name: Authorization
+            in: header
+            type: string
+            required: true
+            description: The JWT token for authentication.
+        responses:
+          200:
+            description: Logged out successfully.
+          401:
+            description: Token is missing.
+        """
     token = request.headers.get('Authorization')
     if token:
         logged_out_tokens.add(token)
@@ -65,6 +144,37 @@ def user_logout():
 @app.route('/api/calendar', methods=['GET'])
 @auth_required
 def get_all_entries(user_id):
+    """
+    Get All Calendar Entries Endpoint
+    ---
+    summary: Get all calendar entries for the authenticated user
+    tags:
+      - Calendar
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: List of calendar entries.
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+              date:
+                type: string
+              entry_type:
+                type: string
+              work_hours:
+                type: number
+            required:
+              - _id
+              - date
+              - entry_type
+      401:
+        description: Unauthorized.
+    """
     entries_from_db = calendar_collection.find({'user_id': user_id})
     entries = [CalendarResponse(
         _id=str(entry['_id']),
@@ -78,6 +188,44 @@ def get_all_entries(user_id):
 @app.route('/api/calendar/add', methods=['POST'])
 @auth_required
 def add_entry(user_id):
+    """
+    Add Calendar Entry Endpoint
+    ---
+    summary: Add a new calendar entry for the authenticated user
+    tags:
+      - Calendar
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: date
+        in: body
+        type: string
+        required: true
+        description: The date of the new entry.
+      - name: entry_type
+        in: body
+        type: string
+        enum: ['WORK', 'PERSONAL', 'VACATION']
+        required: true
+        description: >
+          The type of the new entry. Should be one of: 'WORK', 'PERSONAL', 'VACATION'.
+      - name: work_hours
+        in: body
+        type: number
+        description: The number of work hours for the new entry (optional).
+    responses:
+      201:
+        description: New entry added successfully.
+        schema:
+          type: object
+          properties:
+            entry_id:
+              type: string
+        examples:
+          {'entry_id': 'your_generated_entry_id_here'}
+      400:
+        description: Bad Request. Missing or invalid data.
+    """
     data = request.json
     if 'date' in data and 'entry_type' in data:
         if data['entry_type'] in [entry_type.value for entry_type in EntryType]:
@@ -98,6 +246,26 @@ def add_entry(user_id):
 @app.route('/api/calendar/delete/<entry_id>', methods=['DELETE'])
 @auth_required
 def delete_entry(user_id, entry_id):
+    """
+    Delete Calendar Entry Endpoint
+    ---
+    summary: Delete a calendar entry for the authenticated user
+    tags:
+      - Calendar
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: entry_id
+        in: path
+        type: string
+        required: true
+        description: The ID of the entry to be deleted.
+    responses:
+      204:
+        description: Entry deleted successfully.
+      404:
+        description: Entry not found.
+    """
     entry_id = ObjectId(entry_id)
 
     if calendar_collection.delete_one({'_id': entry_id, 'user_id': user_id}).deleted_count == 1:
@@ -108,6 +276,41 @@ def delete_entry(user_id, entry_id):
 @app.route('/api/calendar/getById/<entry_id>', methods=['GET'])
 @auth_required
 def get_entry(user_id, entry_id):
+    """
+    Get Calendar Entry by ID Endpoint
+    ---
+    summary: Get a calendar entry by ID for the authenticated user
+    tags:
+      - Calendar
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: entry_id
+        in: path
+        type: string
+        required: true
+        description: The ID of the entry to be retrieved.
+    responses:
+      200:
+        description: Details of the calendar entry.
+        schema:
+          type: object
+          properties:
+            _id:
+              type: string
+            date:
+              type: string
+            entry_type:
+              type: string
+            work_hours:
+              type: number
+          required:
+            - _id
+            - date
+            - entry_type
+      404:
+        description: Entry not found.
+    """
     entry = calendar_collection.find_one({'_id': ObjectId(entry_id), 'user_id': user_id})
     if entry:
         calendar_response = CalendarResponse(
@@ -123,6 +326,44 @@ def get_entry(user_id, entry_id):
 @app.route('/api/calendar/update/<entry_id>', methods=['PUT'])
 @auth_required
 def edit_entry(user_id, entry_id):
+    """
+       Update Calendar Entry Endpoint
+       ---
+       summary: Update an existing calendar entry for the authenticated user
+       tags:
+         - Calendar
+       security:
+         - BearerAuth: []
+       parameters:
+         - name: entry_id
+           in: path
+           type: string
+           required: true
+           description: The ID of the entry to be updated.
+         - name: date
+           in: body
+           type: string
+           required: true
+           description: The updated date of the entry.
+         - name: entry_type
+           in: body
+           type: string
+           enum: ['WORK', 'PERSONAL', 'VACATION']
+           required: true
+           description: >
+             The updated type of the entry. Should be one of: 'WORK', 'PERSONAL', 'VACATION'.
+         - name: work_hours
+           in: body
+           type: number
+           description: The updated number of work hours for the entry (optional).
+       responses:
+         204:
+           description: Entry updated successfully.
+         400:
+           description: Bad Request. Missing or invalid data.
+         404:
+           description: Entry not found.
+       """
     data = request.json
     entry = calendar_collection.find_one({'_id': ObjectId(entry_id), 'user_id': user_id})
     if entry:
@@ -143,7 +384,7 @@ def edit_entry(user_id, entry_id):
                 else:
                     return 'Invalid entry data', 400
     else:
-        return 'No entry found', 400
+        return 'No entry found', 404
 
 
 # NON CRUD METHODS
