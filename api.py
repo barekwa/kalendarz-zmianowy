@@ -9,9 +9,20 @@ from auth.auth import generate_token, auth_required
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
+SWAGGER_TEMPLATE = {
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter your Bearer token in the format `Bearer <token>`",
+        }
+    }
+}
 app = Flask(__name__)
 CORS(app)
-swagger = Swagger(app)
+swagger = Swagger(app, template=SWAGGER_TEMPLATE)
+
 
 client = MongoClient('mongodb+srv://ProjectAdmin:Parano55@calendarprojectcluster.usy8q0s.mongodb.net/?retryWrites'
                      '=true&w=majority')
