@@ -1,3 +1,4 @@
+import yaml
 from bson import ObjectId
 from flasgger import Swagger
 from flask import Flask
@@ -10,12 +11,87 @@ from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
 SWAGGER_TEMPLATE = {
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0",
+        "title": "Calendar API",
+    },
     "securityDefinitions": {
         "BearerAuth": {
             "type": "apiKey",
             "name": "Authorization",
             "in": "header",
             "description": "Enter your Bearer token in the format `Bearer <token>`",
+        }
+    },
+    "definitions": {
+        "CalendarEntry": {
+            "type": "object",
+            "properties": {
+                "_id": {"type": "string"},
+                "date": {"type": "string"},
+                "entry_type": {"type": "string"},
+                "work_hours": {"type": "number"}
+            },
+            "required": ["_id", "date", "entry_type"]
+        },
+        "LoginResponse": {
+            "type": "object",
+            "properties": {
+                "token": {"type": "string"}
+            },
+            "required": ["token"]
+        }
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "summary": "Authenticate a user and generate a token",
+                "tags": ["Calendar"],
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "body",
+                        "type": "string",
+                        "required": True,
+                        "description": "The username of the user."
+                    },
+                    {
+                        "name": "password",
+                        "in": "body",
+                        "type": "string",
+                        "required": True,
+                        "description": "The password of the user."
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful login. Returns a JWT token.",
+                        "schema": {"$ref": "#/definitions/LoginResponse"},
+                        "examples": {"{'token': 'your_generated_token_here'}"}
+                    },
+                    "401": {
+                        "description": "Unauthorized. Invalid credentials."
+                    }
+                }
+            }
+        },
+        "/api/calendar": {
+            "get": {
+                "summary": "Get all calendar entries for the authenticated user",
+                "tags": ["Calendar"],
+                "security": [{"BearerAuth": []}],
+                "responses": {
+                    "200": {
+                        "description": "List of calendar entries.",
+                        "schema": {
+                            "type": "array",
+                            "items": {"$ref": "#/definitions/CalendarEntry"}
+                        }
+                    },
+                    "401": {"description": "Unauthorized."}
+                }
+            }
         }
     }
 }
@@ -29,7 +105,6 @@ db = client['CalendarDb']
 calendar_collection = db['CalendarCollection']
 user_collection = db['UserCollection']
 
-@swagger.from_file('/swagger/user_login.yml')
 @app.route('/api/login', methods=['POST'])
 def user_login():
     """
@@ -76,7 +151,6 @@ def user_login():
                 return jsonify({'token': token}), 200
     return 'Unauthorized', 401
 
-@swagger.from_file('/swagger/user_register.yml')
 @app.route('/api/register', methods=['POST'])
 def user_register():
     """
@@ -122,7 +196,6 @@ def user_register():
             return 'Username taken', 403
     return 'Bad Request', 400
 
-@swagger.from_file('/swagger/get_all_entries.yml')
 @app.route('/api/calendar', methods=['GET'])
 @auth_required
 def get_all_entries(user_id):
@@ -166,7 +239,6 @@ def get_all_entries(user_id):
     ) for entry in entries_from_db]
     return jsonify([entry.to_dict() for entry in entries]), 200
 
-@swagger.from_file('/swagger/add_entry.yml')
 @app.route('/api/calendar/add', methods=['POST'])
 @auth_required
 def add_entry(user_id):
@@ -224,7 +296,6 @@ def add_entry(user_id):
                 return 'Invalid entry data', 400
     return 'Wrong data', 400
 
-@swagger.from_file('/swagger/add_entry.yml')
 @app.route('/api/calendar/delete/<entry_id>', methods=['DELETE'])
 @auth_required
 def delete_entry(user_id, entry_id):
@@ -254,7 +325,6 @@ def delete_entry(user_id, entry_id):
         return '', 204
     return 'Entry not found', 404
 
-@swagger.from_file('/swagger/get_entry.yml')
 @app.route('/api/calendar/getById/<entry_id>', methods=['GET'])
 @auth_required
 def get_entry(user_id, entry_id):
@@ -304,7 +374,6 @@ def get_entry(user_id, entry_id):
         return jsonify(calendar_response.to_dict()), 200
     return 'Entry not found', 404
 
-@swagger.from_file('/swagger/edit_entry.yml')
 @app.route('/api/calendar/update/<entry_id>', methods=['PUT'])
 @auth_required
 def edit_entry(user_id, entry_id):
