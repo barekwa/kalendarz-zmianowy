@@ -9,7 +9,6 @@ from auth.auth import generate_token, auth_required
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
-CORS(app)
 SWAGGER_TEMPLATE = {
     "securityDefinitions": {
         "BearerAuth": {
