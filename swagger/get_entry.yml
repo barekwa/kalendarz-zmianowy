@@ -1,0 +1,26 @@
+swagger: "2.0"
+info:
+  title: "Calendar API - Get Entry"
+  description: "Get a calendar entry by ID for the authenticated user"
+  version: "1.0"
+paths:
+  /api/calendar/getById/{entry_id}:
+    get:
+      tags:
+        - "Calendar"
+      summary: "Get a calendar entry by ID for the authenticated user"
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: "path"
+          name: "entry_id"
+          type: "string"
+          required: true
+          description: "The ID of the entry to be retrieved."
+      responses:
+        200:
+          description: "Details of the calendar entry."
+          schema:
+            $ref: "calendar_response.yml"
+        404:
+          description: "Entry not found."

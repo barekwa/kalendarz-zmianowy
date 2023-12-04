@@ -5,7 +5,7 @@ from flask import request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
 
-from auth.auth import generate_token, auth_required, logged_out_tokens
+from auth.auth import generate_token, auth_required
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
 from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
@@ -19,7 +19,7 @@ db = client['CalendarDb']
 calendar_collection = db['CalendarCollection']
 user_collection = db['UserCollection']
 
-
+@swagger.from_file('/swagger/user_login.yml')
 @app.route('/api/login', methods=['POST'])
 def user_login():
     """
@@ -66,7 +66,7 @@ def user_login():
                 return jsonify({'token': token}), 200
     return 'Unauthorized', 401
 
-
+@swagger.from_file('/swagger/user_register.yml')
 @app.route('/api/register', methods=['POST'])
 def user_register():
     """
@@ -112,35 +112,7 @@ def user_register():
             return 'Username taken', 403
     return 'Bad Request', 400
 
-
-@app.route('/api/logout', methods=['POST'])
-def user_logout():
-    """
-        User Logout Endpoint
-        ---
-        summary: Log out the current user
-        tags:
-          - Calendar
-        parameters:
-          - name: Authorization
-            in: header
-            type: string
-            required: true
-            description: The JWT token for authentication.
-        responses:
-          200:
-            description: Logged out successfully.
-          401:
-            description: Token is missing.
-        """
-    token = request.headers.get('Authorization')
-    if token:
-        logged_out_tokens.add(token)
-        return 'Logged out successfully', 200
-    else:
-        return 'Token is missing', 401
-
-
+@swagger.from_file('/swagger/get_all_entries.yml')
 @app.route('/api/calendar', methods=['GET'])
 @auth_required
 def get_all_entries(user_id):
@@ -184,7 +156,7 @@ def get_all_entries(user_id):
     ) for entry in entries_from_db]
     return jsonify([entry.to_dict() for entry in entries]), 200
 
-
+@swagger.from_file('/swagger/add_entry.yml')
 @app.route('/api/calendar/add', methods=['POST'])
 @auth_required
 def add_entry(user_id):
@@ -242,7 +214,7 @@ def add_entry(user_id):
                 return 'Invalid entry data', 400
     return 'Wrong data', 400
 
-
+@swagger.from_file('/swagger/add_entry.yml')
 @app.route('/api/calendar/delete/<entry_id>', methods=['DELETE'])
 @auth_required
 def delete_entry(user_id, entry_id):
@@ -272,7 +244,7 @@ def delete_entry(user_id, entry_id):
         return '', 204
     return 'Entry not found', 404
 
-
+@swagger.from_file('/swagger/get_entry.yml')
 @app.route('/api/calendar/getById/<entry_id>', methods=['GET'])
 @auth_required
 def get_entry(user_id, entry_id):
@@ -322,7 +294,7 @@ def get_entry(user_id, entry_id):
         return jsonify(calendar_response.to_dict()), 200
     return 'Entry not found', 404
 
-
+@swagger.from_file('/swagger/edit_entry.yml')
 @app.route('/api/calendar/update/<entry_id>', methods=['PUT'])
 @auth_required
 def edit_entry(user_id, entry_id):

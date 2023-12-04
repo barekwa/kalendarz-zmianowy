@@ -1,0 +1,31 @@
+swagger: "2.0"
+info:
+  title: "Calendar API - Edit Entry"
+  description: "Update an existing calendar entry for the authenticated user"
+  version: "1.0"
+paths:
+  /api/calendar/update/{entry_id}:
+    put:
+      tags:
+        - "Calendar"
+      summary: "Update an existing calendar entry for the authenticated user"
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: "path"
+          name: "entry_id"
+          type: "string"
+          required: true
+          description: "The ID of the entry to be updated."
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "calendar_request.yml"
+      responses:
+        204:
+          description: "Entry updated successfully."
+        400:
+          description: "Bad Request. Missing or invalid data."
+        404:
+          description: "Entry not found."

@@ -1,0 +1,28 @@
+swagger: "2.0"
+info:
+  title: "Calendar API - User Register"
+  description: "Register a new user"
+  version: "1.0"
+paths:
+  /api/register:
+    post:
+      tags:
+        - "Calendar"
+      summary: "Register a new user"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "user_create_request.yml"
+      responses:
+        201:
+          description: "Registered successfully."
+        400:
+          description: "Bad Request. Missing or invalid data."
+        403:
+          description: "Username is already taken."

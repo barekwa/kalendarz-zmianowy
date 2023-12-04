@@ -19,6 +19,8 @@ RUN pip install pymongo
 RUN pip install python-dateutil
 RUN pip install six
 RUN pip install Werkzeug
+RUN pip install flasgger
+RUN pip install flask_cors
 
 COPY . .
 EXPOSE 5000
