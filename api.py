@@ -1,11 +1,11 @@
-from bson import ObjectId
-from flasgger import Swagger
-from flask import Flask
-from flask import request, jsonify
-from flask_cors import CORS
-from pymongo import MongoClient
 import hashlib
 import secrets
+
+from bson import ObjectId
+from flasgger import Swagger
+from flask import request, jsonify, Flask
+from flask_cors import CORS
+from pymongo import MongoClient
 
 from auth.auth import generate_token, auth_required
 from schemas.CalendarSchema import CalendarResponse, CalendarRequest, EntryType
@@ -76,84 +76,12 @@ SWAGGER_TEMPLATE = {
         },
 
     },
-    "paths": {
-        "/api/calendar/getById/{entry_id}": {
-            "get": {
-                "summary": "Get a calendar entry by ID for the authenticated user",
-                "tags": ["Calendar"],
-                "security": [{"BearerAuth": []}],
-                "parameters": [
-                    {
-                        "name": "entry_id",
-                        "in": "path",
-                        "type": "string",
-                        "required": True,
-                        "description": "The ID of the entry to be retrieved.",
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Details of the calendar entry.",
-                        "schema": {"$ref": "#/definitions/CalendarResponse"},
-                    },
-                    "404": {"description": "Entry not found."},
-                },
-            },
-        },
-        "/api/calendar/update/{entry_id}": {
-            "put": {
-                "summary": "Update an existing calendar entry for the authenticated user",
-                "tags": ["Calendar"],
-                "security": [{"BearerAuth": []}],
-                "parameters": [
-                {
-                    "name": "entry_id",
-                    "in": "path",
-                    "type": "string",
-                    "required": True,
-                    "description": "The ID of the entry to be updated.",
-                    "example": "example_id"
-                },
-                {
-                    "name": "date",
-                    "in": "body",
-                    "type": "string",
-                    "required": True,
-                    "description": "The updated date of the entry.",
-                    "example": "2023-12-01",
-                },
-                {
-                    "name": "entry_type",
-                    "in": "body",
-                    "type": "string",
-                    "enum": ["work", "business_trip", "vacation", "sick_leave"],
-                    "required": True,
-                    "description": "The updated type of the entry.",
-                    "example": "work",
-                },
-                {
-                    "name": "work_hours",
-                    "in": "body",
-                    "type": "number",
-                    "description": "The updated number of work hours for the entry (optional).",
-                    "example": 8,
-                },
-            ],
-            "responses": {
-                "204": {"description": "Entry updated successfully."},
-                "400": {"description": "Bad Request. Missing or invalid data."},
-                "404": {"description": "Entry not found."},
-            },
-            },
-        },
-    },
 }
 
 
 app = Flask(__name__)
 CORS(app)
 swagger = Swagger(app, template=SWAGGER_TEMPLATE)
-
 
 client = MongoClient('mongodb+srv://ProjectAdmin:Parano55@calendarprojectcluster.usy8q0s.mongodb.net/?retryWrites'
                      '=true&w=majority')
@@ -169,8 +97,13 @@ def user_login():
         ---
         summary: Authenticate a user and generate a token
         tags:
-          - Authorization
+          - Calendar
         parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              $ref: "#/definitions/UserLoginRequest"
           - name: body
             in: body
             required: true
