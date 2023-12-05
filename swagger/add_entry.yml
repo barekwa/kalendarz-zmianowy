@@ -1,0 +1,30 @@
+swagger: "2.0"
+info:
+  title: "Calendar API - Add Entry"
+  description: "Add a new calendar entry for the authenticated user"
+  version: "1.0"
+paths:
+  /api/calendar/add:
+    post:
+      tags:
+        - "Calendar"
+      summary: "Add a new calendar entry for the authenticated user"
+      security:
+        - BearerAuth: []
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          required: true
+          schema:
+            $ref: "calendar_request.yml"
+      responses:
+        201:
+          description: "New entry added successfully."
+          schema:
+            $ref: "entry_id_response.yml"
+        400:
+          description: "Bad Request. Missing or invalid data."

@@ -11,7 +11,8 @@ from schemas.UserSchema import UserCreateRequest, UserLoginRequest
 
 app = Flask(__name__)
 CORS(app)
-swagger = Swagger(app)
+
+swagger = Swagger(app, template_file='swagger/edit_entry.yml')
 
 client = MongoClient('mongodb+srv://ProjectAdmin:Parano55@calendarprojectcluster.usy8q0s.mongodb.net/?retryWrites'
                      '=true&w=majority')
